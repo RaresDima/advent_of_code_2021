@@ -67,7 +67,6 @@ called_numbers, *boards = raw_data.split('\n\n')
 called_numbers = list(map(int, called_numbers.split(',')))
 boards = list(map(BingoBoard, boards))
 
-
 for called_number in called_numbers:
     winning_boards_this_round = set()
     print('Called number:', called_number)
