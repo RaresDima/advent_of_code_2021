@@ -27,8 +27,3 @@ gamma = int(''.join(str(int(bit)) for bit in gamma_bits), 2)
 epsilon = int(''.join(str(int(bit)) for bit in epsilon_bits), 2)
 
 print(gamma, epsilon, gamma * epsilon)
-
-
-
-
-
