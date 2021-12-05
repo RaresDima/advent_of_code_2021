@@ -78,7 +78,7 @@ class VentField:
 
         self.lines = lines
         self.points_by_line = list(map(compose(set, methodcaller('line_points')), self.lines))
-        self.lines_trough_point = defaultdict(lambda: 0)
+        self.lines_trough_point = defaultdict(int)
         for line_points in self.points_by_line:
             for point in line_points:
                 self.lines_trough_point[point] += 1
