@@ -4,7 +4,6 @@ from operator import eq
 from operator import not_
 from functools import partial
 from toolz import compose
-from itertools import repeat
 
 from typing import *
 
