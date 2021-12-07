@@ -25,7 +25,6 @@ with open(INPUT_FILE) as f:
 crab_positions = list(map(int, raw_data.split(',')))
 
 alignment_target = round(mean(crab_positions))
-print(mean(crab_positions))
 fuel_required = get_fuel_required_for_alignment_target(alignment_target, crab_positions)
 
 print(f'Aligned on {alignment_target} for {fuel_required} fuel.')
