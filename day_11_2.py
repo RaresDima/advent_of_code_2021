@@ -63,7 +63,7 @@ def pass_time(energy_levels: np.ndarray) -> int:
         flash_neighbour_lists = [get_neighbour_coords(*location, *energy_levels.shape)
                                  for location in flash_locations]
 
-        energy_levels[energy_levels > 9] = -100
+        energy_levels[energy_levels > 9] = -10
 
         for flash_neighbour_list in flash_neighbour_lists:
             energy_levels[tuple(zip(*flash_neighbour_list))] += 1
