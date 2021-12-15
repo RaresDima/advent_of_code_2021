@@ -1,10 +1,9 @@
 import os
 import sys
-from functools import lru_cache
 from functools import partial
 from toolz import compose
-from collections import defaultdict
-from collections import deque
+import multiprocessing
+
 
 import numpy as np
 
@@ -37,37 +36,63 @@ def risk_of_least_risk_path(row: int, col: int,
                             end_row: int, end_col: int,
                             risks: np.ndarray) -> int:
 
-    num_cost_changes = 0
+    frontier_cost_evaluations = 0
 
-    start = (row, col)
+    start_location = (row, col)
+    destination_location = (end_row, end_col)
 
-    cost_to_reach_from_start_location = defaultdict(lambda: float('inf'))
-    cost_to_reach_from_start_location[start] = 0
+    visited_locations = set()
+    unvisited_locations = {(row_index, col_index)
+                           for row_index, row in enumerate(risks)
+                           for col_index, col in enumerate(row)}
 
-    to_evaluate_cost_to_neighbours = deque([start])
+    frontier = {start_location}
 
-    while to_evaluate_cost_to_neighbours:
+    risk_to_reach = {(row_index, col_index): float('inf')
+                     for row_index, row in enumerate(risks)
+                     for col_index, col in enumerate(row)}
 
-        current = to_evaluate_cost_to_neighbours.popleft()
-        neighoburs = get_neighbours(*current)
+    risk_to_reach[start_location] = 0
 
-        for neighobur in neighoburs:
-            neighbour_row, neighbour_col = neighobur
+    current_location = start_location
 
-            current_cost_to_neighbour = cost_to_reach_from_start_location[neighobur]
-            possible_cost_to_neighbour = cost_to_reach_from_start_location[current] + \
-                                         risks[neighbour_row, neighbour_col]
+    while True:
 
-            if possible_cost_to_neighbour < current_cost_to_neighbour:
+        unvisited_neighbours = [neighbour
+                                for neighbour in get_neighbours(*current_location)
+                                if neighbour not in visited_locations]
 
-                num_cost_changes += 1
-                if num_cost_changes % 100_000 == 0:
-                    print(f'{num_cost_changes//1000}k costs have been updated.')
 
-                cost_to_reach_from_start_location[neighobur] = possible_cost_to_neighbour
-                to_evaluate_cost_to_neighbours.append(neighobur)
+        for neighbour in unvisited_neighbours:
+            neighbour_row, neighbour_col = neighbour
 
-    return cost_to_reach_from_start_location[(end_row, end_col)]
+            current_risk_to_reach = risk_to_reach[neighbour]
+            risk_to_reach_trough_current_location = risk_to_reach[current_location] + \
+                                                    risks[neighbour_row, neighbour_col]
+
+            if risk_to_reach_trough_current_location < current_risk_to_reach:
+                risk_to_reach[neighbour] = risk_to_reach_trough_current_location
+
+        visited_locations.add(current_location)
+        unvisited_locations.remove(current_location)
+
+        frontier.update(unvisited_neighbours)
+        frontier.remove(current_location)
+
+        if destination_location in visited_locations:
+            return risk_to_reach[destination_location]
+
+        current_location = min((risk_to_reach[location[0],
+                                              location[1]],
+                                location)
+                               for location in frontier)[1]
+
+        frontier_cost_evaluations += len(frontier)
+        if len(visited_locations) % 1000 == 0:
+            print(f'Visited {len(visited_locations)//1000}k nodes '
+                  f'({len(unvisited_locations)//1000}k left). '
+                  f'{frontier_cost_evaluations} cost evaluations done.')
+
 
 
 def increment_tile(original_tile: np.ndarray) -> np.ndarray:
